@@ -87,13 +87,13 @@ defmodule Money do
            |> String.slice(0..precision-1)
            |> String.pad_trailing(precision, "0")
            |> Integer.parse,
-         pow <-
-           :math.pow(10, precision)
+         pow10 <-
+           pow10(precision)
            |> round,
          amount <-
            (cond do
-             integer < 0 -> integer * pow - fractional
-             true        -> integer * pow + fractional
+             integer < 0 -> integer * pow10 - fractional
+             true        -> integer * pow10 + fractional
            end)
     do
       %Money{amount: amount, currency_code: currency_code}
@@ -122,13 +122,13 @@ defmodule Money do
   def to_string(%Money{amount: amount, currency_code: currency_code}) do
     with %{display: %{precision: display_precision}, precision: precision} <-
            Map.get(@currency_code_map, currency_code),
-         pow <-
-           :math.pow(10, precision)
+         pow10 <-
+           pow10(precision)
            |> round,
          div <-
-           div(amount, pow),
+           div(amount, pow10),
          rem <-
-           abs(rem(amount, pow)),
+           abs(rem(amount, pow10)),
          div_string <-
            div
            |> Integer.to_string,
@@ -176,11 +176,19 @@ defmodule Money do
       -123.45
 
   """
-  def to_float(money) do
+  def to_float(%Money{} = money) do
     money
     |> __MODULE__.to_string
     |> Float.parse
     |> elem(0)
   end
 
+  @pow10_max 104
+  Enum.reduce 0..@pow10_max, 1, fn int, acc ->
+    defp pow10(unquote(int)), do: unquote(acc)
+    acc * 10
+  end
+  defp pow10(int) when int > @pow10_max do
+    pow10(@pow10_max) * pow10(int - @pow10_max)
+  end
 end
