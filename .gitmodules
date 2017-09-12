@@ -1,0 +1,3 @@
+[submodule "priv/currency-config"]
+	path = priv/currency-config
+	url = git@github.com:heathmont/currency-config.git
