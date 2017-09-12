@@ -17,6 +17,8 @@ defmodule Money do
     Map.put(acc, code, currency)
   end)
 
+  @decimal_point "."
+
   @doc """
 
   Converts from strings with the currency symbols and amount to Money.
@@ -66,7 +68,7 @@ defmodule Money do
   def from_string(amount_string, currency_code) when is_binary(amount_string) and is_binary(currency_code) do
     [integer_string, fractional_string] =
       amount_string
-      |> String.split(".")
+      |> String.split(@decimal_point)
       |> case do
            [integer_string] ->
              [integer_string, "0"]
@@ -88,8 +90,7 @@ defmodule Money do
            |> String.pad_trailing(precision, "0")
            |> Integer.parse,
          pow10 <-
-           pow10(precision)
-           |> round,
+           pow10(precision),
          amount <-
            (cond do
              integer < 0 -> integer * pow10 - fractional
@@ -109,13 +110,13 @@ defmodule Money do
 
   ## Examples
 
-      iex> Money.to_string(%Money{amount: 12345678, currency_code: "GBP"})
+      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP"})
       "123.45"
 
-      iex> Money.to_string(%Money{amount: -12345678, currency_code: "PHP"})
+      iex> Money.to_string(%Money{amount: -12_345_678, currency_code: "PHP"})
       "-123.45"
 
-      iex> Money.to_string(%Money{amount: 12345678, currency_code: "BTC"})
+      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "BTC"})
       "0.1234"
 
   """
@@ -123,8 +124,7 @@ defmodule Money do
     with %{display: %{precision: display_precision}, precision: precision} <-
            Map.get(@currency_code_map, currency_code),
          pow10 <-
-           pow10(precision)
-           |> round,
+           pow10(precision),
          div <-
            div(amount, pow10),
          rem <-
@@ -137,7 +137,7 @@ defmodule Money do
            |> Integer.to_string
            |> String.slice(0..display_precision-1)
     do
-      div_string <> "." <> rem_string
+      div_string <> @decimal_point <> rem_string
     else
       error ->
         Logger.error "error: #{inspect error}, amount: #{inspect amount}, code: #{inspect currency_code}"
@@ -153,8 +153,8 @@ defmodule Money do
       iex> Money.from_float(123.45, "EUR")
       %Money{amount: 12345000, currency_code: "EUR"}
 
-      iex> Money.from_float(-123.45, "EUR")
-      %Money{amount: -12345000, currency_code: "EUR"}
+      iex> Money.from_float(-1234.5678999, "EUR")
+      %Money{amount: -123456789, currency_code: "EUR"}
 
   """
   def from_float(float, currency_code) when is_float(float) and is_binary(currency_code) do
@@ -169,18 +169,17 @@ defmodule Money do
 
   ## Examples
 
-      iex> Money.to_float(%Money{amount: 12345000, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 12_345_000, currency_code: "EUR"})
       123.45
 
-      iex> Money.to_float(%Money{amount: -12345000, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: -12_345_000, currency_code: "EUR"})
       -123.45
 
   """
   def to_float(%Money{} = money) do
     money
     |> __MODULE__.to_string
-    |> Float.parse
-    |> elem(0)
+    |> String.to_float
   end
 
   @pow10_max 104
