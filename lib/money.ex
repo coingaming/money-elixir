@@ -38,6 +38,9 @@ defmodule Money do
       iex> Money.from_string("$.45")
       %Money{amount: 45000, currency_code: "USD"}
 
+      iex> Money.from_string("$-123.45")
+      %Money{amount: -12345000, currency_code: "USD"}
+
   """
   for %{code: code,
         display: %{code:           display_code,
@@ -88,7 +91,10 @@ defmodule Money do
            :math.pow(10, precision)
            |> round,
          amount <-
-           integer * pow + fractional
+           (cond do
+             integer < 0 -> integer * pow - fractional
+             true        -> integer * pow + fractional
+           end)
     do
       %Money{amount: amount, currency_code: currency_code}
     else
@@ -106,6 +112,9 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 12345678, currency_code: "GBP"})
       "123.45"
 
+      iex> Money.to_string(%Money{amount: -12345678, currency_code: "PHP"})
+      "-123.45"
+
       iex> Money.to_string(%Money{amount: 12345678, currency_code: "BTC"})
       "0.1234"
 
@@ -119,7 +128,7 @@ defmodule Money do
          div <-
            div(amount, pow),
          rem <-
-           rem(amount, pow),
+           abs(rem(amount, pow)),
          div_string <-
            div
            |> Integer.to_string,
@@ -144,6 +153,9 @@ defmodule Money do
       iex> Money.from_float(123.45, "EUR")
       %Money{amount: 12345000, currency_code: "EUR"}
 
+      iex> Money.from_float(-123.45, "EUR")
+      %Money{amount: -12345000, currency_code: "EUR"}
+
   """
   def from_float(float, currency_code) when is_float(float) and is_binary(currency_code) do
     float
@@ -159,6 +171,9 @@ defmodule Money do
 
       iex> Money.to_float(%Money{amount: 12345000, currency_code: "EUR"})
       123.45
+
+      iex> Money.to_float(%Money{amount: -12345000, currency_code: "EUR"})
+      -123.45
 
   """
   def to_float(money) do
