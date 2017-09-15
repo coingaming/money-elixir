@@ -19,8 +19,6 @@ defmodule Money do
     Map.put(acc, code, currency)
   end)
 
-  @max_decimals Enum.reduce(@currency_config, 0, fn(%{precision: precision}, acc) -> max(precision, acc) end)
-
   @decimal_point "."
 
   @doc """
@@ -57,7 +55,10 @@ defmodule Money do
       %Money{amount: 12345000, currency_code: "EUR"}
 
       iex> Money.to_money(-1234.5678999, "EUR")
-      %Money{amount: -123456789, currency_code: "EUR"}
+      %Money{amount: -123456790, currency_code: "EUR"}
+
+      iex> Money.to_money(0.0000099999999, "EUR")
+      %Money{amount: 1, currency_code: "EUR"}
 
       iex> Money.to_money(1.0e-5, "EUR")
       %Money{amount: 1, currency_code: "EUR"}
@@ -154,8 +155,9 @@ defmodule Money do
   end
 
   def to_money(float, currency_code) when is_float(float) and is_binary(currency_code) do
+    %{precision: precision} = Map.get(@currency_code_map, currency_code)
     float
-    |> :erlang.float_to_binary(decimals: @max_decimals)
+    |> :erlang.float_to_binary(decimals: precision)
     |> __MODULE__.to_money(currency_code)
   end
 
