@@ -19,10 +19,11 @@ defmodule Money do
     Map.put(acc, code, currency)
   end)
 
+  @max_decimals Enum.reduce(@currency_config, 0, fn(%{precision: precision}, acc) -> max(precision, acc) end)
+
   @decimal_point "."
 
   @doc """
-
   Converts amounts of money from strings, floats or integers with currency symbols to Money.
 
   ## Examples from strings with currency symbols inside
@@ -54,6 +55,9 @@ defmodule Money do
 
       iex> Money.to_money(-1234.5678999, "EUR")
       %Money{amount: -123456789, currency_code: "EUR"}
+
+      iex> Money.to_money(1.0e-5, "EUR")
+      %Money{amount: 1, currency_code: "EUR"}
 
   ## Examples from integers
 
@@ -140,10 +144,9 @@ defmodule Money do
 
   def to_money(float, currency_code) when is_float(float) and is_binary(currency_code) do
     float
-    |> Float.to_string
+    |> :erlang.float_to_binary(decimals: @max_decimals)
     |> __MODULE__.to_money(currency_code)
   end
-
 
   def to_money(integer, currency_code) when is_integer(integer) and is_binary(currency_code) do
     integer
@@ -152,7 +155,6 @@ defmodule Money do
   end
 
   @doc """
-
   Converts from Money to strings.
 
   ## Examples
@@ -200,7 +202,6 @@ defmodule Money do
   end
 
   @doc """
-
   Converts from Money to floats.
 
   ## Examples
