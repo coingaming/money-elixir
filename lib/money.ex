@@ -11,7 +11,9 @@ defmodule Money do
 
   defstruct [:amount, :currency_code]
 
-  @currency_config Application.get_env(:money, :currency_config)
+  @currency_config Application.app_dir(:money, "priv/currency-config/config.json")
+                   |> File.read!
+                   |> Poison.decode!(keys: :atoms)
 
   @currency_code_map Enum.reduce(@currency_config, %{}, fn(%{code: code} = currency, acc) ->
     Map.put(acc, code, currency)
