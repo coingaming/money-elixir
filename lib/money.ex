@@ -23,27 +23,45 @@ defmodule Money do
 
   @doc """
 
-  Converts from strings with the currency symbols and amount to Money.
+  Converts amounts of money from strings, floats or integers with currency symbols to Money.
 
-  ## Examples
+  ## Examples from strings with currency symbols inside
 
-      iex> Money.from_string("EUR123.456789")
-      %Money{amount: 12345678, currency_code: "EUR"}
-
-      iex> Money.from_string("$123.45")
+      iex> Money.to_money("$123.45")
       %Money{amount: 12345000, currency_code: "USD"}
 
-      iex> Money.from_string("$123")
+      iex> Money.to_money("$123")
       %Money{amount: 12300000, currency_code: "USD"}
 
-      iex> Money.from_string("$123.")
+      iex> Money.to_money("$123.")
       %Money{amount: 12300000, currency_code: "USD"}
 
-      iex> Money.from_string("$.45")
+      iex> Money.to_money("$.45")
       %Money{amount: 45000, currency_code: "USD"}
 
-      iex> Money.from_string("$-123.45")
+      iex> Money.to_money("$-123.45")
       %Money{amount: -12345000, currency_code: "USD"}
+
+  ## Examples from strings with currency symbols as a separate argument
+
+      iex> Money.to_money("123.456789", "EUR")
+      %Money{amount: 12345678, currency_code: "EUR"}
+
+  ## Examples from floats
+
+      iex> Money.to_money(123.45, "EUR")
+      %Money{amount: 12345000, currency_code: "EUR"}
+
+      iex> Money.to_money(-1234.5678999, "EUR")
+      %Money{amount: -123456789, currency_code: "EUR"}
+
+  ## Examples from integers
+
+      iex> Money.to_money(12345, "EUR")
+      %Money{amount: 1234500000, currency_code: "EUR"}
+
+      iex> Money.to_money(-12345, "EUR")
+      %Money{amount: -1234500000, currency_code: "EUR"}
 
   """
   for %{code: code,
@@ -56,18 +74,18 @@ defmodule Money do
         precision: _precision} <- @currency_config
   do
     if is_binary(display_symbol) do
-      def from_string(unquote(display_symbol) <> amount = string) when is_binary(string) do
-        from_string(amount, unquote(code))
+      def to_money(unquote(display_symbol) <> amount = string) when is_binary(string) do
+        to_money(amount, unquote(code))
       end
     end
     if is_binary(display_code) do
-      def from_string(unquote(display_code) <> amount = string) when is_binary(string) do
-        from_string(amount, unquote(code))
+      def to_money(unquote(display_code) <> amount = string) when is_binary(string) do
+        to_money(amount, unquote(code))
       end
     end
   end
 
-  def from_string(amount_string, currency_code) when is_binary(amount_string) and is_binary(currency_code) do
+  def to_money(amount_string, currency_code) when is_binary(amount_string) and is_binary(currency_code) do
     [integer_string, fractional_string] =
       amount_string
       |> String.split(@decimal_point)
@@ -106,9 +124,22 @@ defmodule Money do
     end
   end
 
+  def to_money(float, currency_code) when is_float(float) and is_binary(currency_code) do
+    float
+    |> Float.to_string
+    |> __MODULE__.to_money(currency_code)
+  end
+
+
+  def to_money(integer, currency_code) when is_integer(integer) and is_binary(currency_code) do
+    integer
+    |> Integer.to_string
+    |> __MODULE__.to_money(currency_code)
+  end
+
   @doc """
 
-  Converts from Money to strings with the currency symbols and amount.
+  Converts from Money to strings.
 
   ## Examples
 
@@ -148,26 +179,7 @@ defmodule Money do
 
   @doc """
 
-  Converts from float amounts with the currency symbols to Money.
-
-  ## Examples
-
-      iex> Money.from_float(123.45, "EUR")
-      %Money{amount: 12345000, currency_code: "EUR"}
-
-      iex> Money.from_float(-1234.5678999, "EUR")
-      %Money{amount: -123456789, currency_code: "EUR"}
-
-  """
-  def from_float(float, currency_code) when is_float(float) and is_binary(currency_code) do
-    float
-    |> Float.to_string
-    |> __MODULE__.from_string(currency_code)
-  end
-
-  @doc """
-
-  Converts from Money to float amounts with the currency symbols.
+  Converts from Money to floats.
 
   ## Examples
 
