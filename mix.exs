@@ -1,7 +1,7 @@
 defmodule Money.Mixfile do
   use Mix.Project
 
-  @vsn "0.0.3"
+  @vsn "0.0.4"
 
   def project do
     [

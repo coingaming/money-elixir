@@ -63,6 +63,17 @@ defmodule Money do
       iex> Money.to_money(-12345, "EUR")
       %Money{amount: -1234500000, currency_code: "EUR"}
 
+  ## Examples with errors
+
+      iex> Money.to_money("123.456!789", "EUR")
+      ** (ArgumentError) argument error
+
+      iex> Money.to_money("123!456!789", "EUR")
+      ** (ArgumentError) argument error
+
+      iex> Money.to_money("123.456.789", "EUR")
+      ** (ArgumentError) argument error
+
   """
   for %{code: code,
         display: %{code:           display_code,
@@ -98,6 +109,8 @@ defmodule Money do
              ["0", fractional_string]
            [integer_string, fractional_string] ->
              [integer_string, fractional_string]
+           _ ->
+             raise ArgumentError
          end
     with %{precision: precision} <-
            Map.get(@currency_code_map, currency_code),
@@ -121,6 +134,7 @@ defmodule Money do
     else
       error ->
         Logger.error "error: #{inspect error}, amount: #{inspect amount_string}, code: #{inspect currency_code}"
+        raise ArgumentError
     end
   end
 
@@ -152,6 +166,12 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "BTC"})
       "0.1234"
 
+      iex> Money.to_string(%Money{amount: 100, currency_code: "EUR"})
+      "0.00"
+
+      iex> Money.to_string(%Money{amount: 1_000, currency_code: "EUR"})
+      "0.01"
+
   """
   def to_string(%Money{amount: amount, currency_code: currency_code}) do
     with %{display: %{precision: display_precision}, precision: precision} <-
@@ -168,12 +188,14 @@ defmodule Money do
          rem_string <-
            rem
            |> Integer.to_string
+           |> String.pad_leading(precision, "0")
            |> String.slice(0..display_precision-1)
     do
       div_string <> @decimal_point <> rem_string
     else
       error ->
         Logger.error "error: #{inspect error}, amount: #{inspect amount}, code: #{inspect currency_code}"
+        raise ArgumentError
     end
   end
 
