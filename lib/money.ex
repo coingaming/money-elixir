@@ -48,6 +48,9 @@ defmodule Money do
       iex> Money.to_money("123.456789", "EUR")
       %Money{amount: 12345678, currency_code: "EUR"}
 
+      iex> Money.to_money("-0.00001", "EUR")
+      %Money{amount: -1, currency_code: "EUR"}
+
   ## Examples from floats
 
       iex> Money.to_money(123.45, "EUR")
@@ -58,6 +61,9 @@ defmodule Money do
 
       iex> Money.to_money(1.0e-5, "EUR")
       %Money{amount: 1, currency_code: "EUR"}
+
+      iex> Money.to_money(-0.00001, "EUR")
+      %Money{amount: -1, currency_code: "EUR"}
 
   ## Examples from integers
 
@@ -116,6 +122,11 @@ defmodule Money do
            _ ->
              raise ArgumentError
          end
+    negative =
+      case integer_string do
+        "-" <> _ -> true
+               _ -> false
+      end
     with %{precision: precision} <-
            Map.get(@currency_code_map, currency_code),
          {integer,    ""} <-
@@ -129,9 +140,9 @@ defmodule Money do
          pow10 <-
            pow10(precision),
          amount <-
-           (cond do
-             integer < 0 -> integer * pow10 - fractional
-             true        -> integer * pow10 + fractional
+           (case negative do
+              true -> integer * pow10 - fractional
+              _    -> integer * pow10 + fractional
            end)
     do
       %Money{amount: amount, currency_code: currency_code}
