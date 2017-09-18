@@ -1,11 +1,11 @@
 defmodule Money.Mixfile do
   use Mix.Project
 
-  @vsn "0.0.4"
+  @vsn "0.0.5"
 
   def project do
     [
-      app: :money,
+      app: :ih_money,
       name: "Money",
       description: "Money amount converter",
       source_url: "https://github.com/heathmont/money-elixir",
