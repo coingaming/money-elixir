@@ -11,7 +11,7 @@ defmodule Money do
 
   defstruct [:amount, :currency_code]
 
-  @currency_config Application.app_dir(:money, "priv/currency-config/config.json")
+  @currency_config Application.app_dir(:ih_money, "priv/currency-config/config.json")
                    |> File.read!
                    |> Poison.decode!(keys: :atoms)
 
