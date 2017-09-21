@@ -1,6 +1,4 @@
 defmodule Money do
-  require Logger
-
   @moduledoc """
 
   Money amount converter.
@@ -89,6 +87,12 @@ defmodule Money do
       iex> Money.to_money("123.456.789", "EUR")
       ** (ArgumentError) argument error
 
+      iex> Money.to_money("SomeUnknownCurrency-123.45")
+      ** (ArgumentError) argument error
+
+      iex> Money.to_money("123.45", "SomeUnknownCurrency")
+      ** (ArgumentError) argument error
+
   """
   for %{code: code,
         display: %{code:           display_code,
@@ -110,6 +114,9 @@ defmodule Money do
       end
     end
   end
+  def to_money(string) when is_binary(string) do
+    raise ArgumentError
+  end
 
   def to_money(amount_string, currency_code) when is_binary(amount_string) and is_binary(currency_code) do
     cond do
@@ -125,7 +132,7 @@ defmodule Money do
   end
 
   def to_money(float, currency_code) when is_float(float) and is_binary(currency_code) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code)
+    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
     {amount, ""} =
       float
       |> :erlang.float_to_binary(decimals: precision)
@@ -135,7 +142,7 @@ defmodule Money do
   end
 
   def to_money(integer, currency_code) when is_integer(integer) and is_binary(currency_code) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code)
+    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
     %Money{amount: integer * pow10(precision), currency_code: currency_code}
   end
 
@@ -176,7 +183,7 @@ defmodule Money do
 
   """
   def to_string(%Money{currency_code: currency_code} = money) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code)
+    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
     money
     |> __MODULE__.to_float
     |> :erlang.float_to_binary([{:decimals, precision}, :compact])
@@ -207,7 +214,7 @@ defmodule Money do
 
   """
   def to_float(%Money{amount: amount, currency_code: currency_code}) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code)
+    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
     amount / pow10(precision)
   end
 
