@@ -136,11 +136,7 @@ defmodule Money do
 
   def to_money(integer, currency_code) when is_integer(integer) and is_binary(currency_code) do
     %{precision: precision} = Map.get(@currency_code_map, currency_code)
-    {amount, ""} =
-      integer
-      |> :erlang.integer_to_binary()
-      |> Integer.parse
-    %Money{amount: amount * pow10(precision), currency_code: currency_code}
+    %Money{amount: integer * pow10(precision), currency_code: currency_code}
   end
 
   @doc """
