@@ -149,33 +149,41 @@ defmodule Money do
   ## Examples
 
       iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP"})
-      "123.46"
+      "123.45678"
 
       iex> Money.to_string(%Money{amount: -12_345_678, currency_code: "PHP"})
-      "-123.46"
+      "-123.45678"
 
       iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "BTC"})
-      "0.1235"
+      "0.12345678"
 
       iex> Money.to_string(%Money{amount: 100_000, currency_code: "EUR"})
-      "1.00"
+      "1.0"
 
       iex> Money.to_string(%Money{amount: 1_000, currency_code: "EUR"})
       "0.01"
 
       iex> Money.to_string(%Money{amount: 999, currency_code: "EUR"})
-      "0.01"
+      "0.00999"
 
       iex> Money.to_string(%Money{amount: 100, currency_code: "EUR"})
-      "0.00"
+      "0.001"
+
+      iex> Money.to_string(%Money{amount: 1, currency_code: "EUR"})
+      "0.00001"
+
+      iex> Money.to_string(%Money{amount: 1, currency_code: "BTC"})
+      "0.00000001"
+
+      iex> Money.to_string(%Money{amount: 0, currency_code: "BTC"})
+      "0.0"
 
   """
-  def to_string(%Money{amount: amount, currency_code: currency_code}) do
-    %{display: %{precision: display_precision}, precision: precision} =
-      Map.get(@currency_code_map, currency_code)
-    float = amount / pow10(precision)
-    float
-    |> :erlang.float_to_binary(decimals: display_precision)
+  def to_string(%Money{currency_code: currency_code} = money) do
+    %{precision: precision} = Map.get(@currency_code_map, currency_code)
+    money
+    |> __MODULE__.to_float
+    |> :erlang.float_to_binary([{:decimals, precision}, :compact])
   end
 
   @doc """
@@ -189,16 +197,22 @@ defmodule Money do
       iex> Money.to_float(%Money{amount: -12_345_000, currency_code: "EUR"})
       -123.45
 
-  ## Examples with rounding
-
       iex> Money.to_float(%Money{amount: 123_450, currency_code: "EUR"})
-      1.24
+      1.2345
+
+      iex> Money.to_float(%Money{amount: 123, currency_code: "EUR"})
+      0.00123
+
+      iex> Money.to_float(%Money{amount: 1, currency_code: "EUR"})
+      1.0e-5
+
+      iex> Money.to_float(%Money{amount: 0, currency_code: "EUR"})
+      0.0
 
   """
-  def to_float(%Money{} = money) do
-    money
-    |> __MODULE__.to_string
-    |> :erlang.binary_to_float
+  def to_float(%Money{amount: amount, currency_code: currency_code}) do
+    %{precision: precision} = Map.get(@currency_code_map, currency_code)
+    amount / pow10(precision)
   end
 
   @pow10_max 104
