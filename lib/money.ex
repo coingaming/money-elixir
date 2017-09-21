@@ -181,12 +181,36 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 0, currency_code: "BTC"})
       "0.0"
 
+      iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR"})
+      "123456789012345678901234567890123456789012345.6789"
+
   """
-  def to_string(%Money{currency_code: currency_code} = money) do
+  def to_string(%Money{amount: amount, currency_code: currency_code}) do
     %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    money
-    |> __MODULE__.to_float
-    |> :erlang.float_to_binary([{:decimals, precision}, :compact])
+    {integer_string, fractional_string} =
+      amount
+      |> Integer.to_string
+      |> String.split_at(-precision)
+      |> case do
+           {"", fractional_string} ->
+             {"0", fractional_string}
+           {integer_string, fractional_string} ->
+             {integer_string, fractional_string}
+         end
+      |> case do
+           {integer_string, fractional_string} ->
+             {integer_string, fractional_string
+                              |> String.pad_leading(precision, "0")
+                              |> String.replace_trailing("0", "")}
+         end
+      |> case do
+           {integer_string, ""} ->
+             {integer_string, "0"}
+           {integer_string, fractional_string} ->
+             {integer_string, fractional_string}
+         end
+    [integer_string, fractional_string]
+    |> Enum.join(@decimal_point)
   end
 
   @doc """
@@ -211,6 +235,9 @@ defmodule Money do
 
       iex> Money.to_float(%Money{amount: 0, currency_code: "EUR"})
       0.0
+
+      iex> Money.to_float(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR"})
+      1.2345678901234567e44
 
   """
   def to_float(%Money{amount: amount, currency_code: currency_code}) do
