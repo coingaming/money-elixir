@@ -240,9 +240,10 @@ defmodule Money do
       1.2345678901234567e44
 
   """
-  def to_float(%Money{amount: amount, currency_code: currency_code}) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    amount / pow10(precision)
+  def to_float(%Money{} = money) do
+    money
+    |> __MODULE__.to_string
+    |> :erlang.binary_to_float
   end
 
   @pow10_max 104
