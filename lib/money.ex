@@ -133,11 +133,11 @@ defmodule Money do
 
   def to_money(float, currency_code) when is_float(float) and is_binary(currency_code) do
     %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    {amount, ""} =
+    amount =
       float
       |> :erlang.float_to_binary(decimals: precision)
       |> String.replace(@decimal_point, "")
-      |> Integer.parse
+      |> String.to_integer
     %Money{amount: amount, currency_code: currency_code}
   end
 
@@ -191,26 +191,10 @@ defmodule Money do
       amount
       |> Integer.to_string
       |> String.split_at(-precision)
-      |> case do
-           {"", fractional_string} ->
-             {"0", fractional_string}
-           {integer_string, fractional_string} ->
-             {integer_string, fractional_string}
-         end
-      |> case do
-           {integer_string, fractional_string} ->
-             {integer_string, fractional_string
-                              |> String.pad_leading(precision, "0")
-                              |> String.replace_trailing("0", "")}
-         end
-      |> case do
-           {integer_string, ""} ->
-             {integer_string, "0"}
-           {integer_string, fractional_string} ->
-             {integer_string, fractional_string}
-         end
-    [integer_string, fractional_string]
-    |> Enum.join(@decimal_point)
+    String.pad_leading(integer_string, 1, "0") <> @decimal_point <>
+    String.pad_trailing(fractional_string
+                        |> String.pad_leading(precision, "0")
+                        |> String.trim_trailing("0"), 1, "0")
   end
 
   @doc """
