@@ -191,10 +191,16 @@ defmodule Money do
       amount
       |> Integer.to_string
       |> String.split_at(-precision)
-    String.pad_leading(integer_string, 1, "0") <> @decimal_point <>
-    String.pad_trailing(fractional_string
-                        |> String.pad_leading(precision, "0")
-                        |> String.trim_trailing("0"), 1, "0")
+
+    (integer_string
+     |> String.pad_leading(1, "0"))
+    <>
+    @decimal_point
+    <>
+    (fractional_string
+     |> String.pad_leading(precision, "0")
+     |> String.trim_trailing("0")
+     |> String.pad_leading(1, "0"))
   end
 
   @doc """
