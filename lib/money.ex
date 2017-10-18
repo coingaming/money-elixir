@@ -118,32 +118,32 @@ defmodule Money do
     raise ArgumentError
   end
 
-  def to_money(amount_string, currency_code) when is_binary(amount_string) and is_binary(currency_code) do
+  def to_money(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
     cond do
-      String.contains?(amount_string, @decimal_point) ->
-        amount_string
+      String.contains?(string_amount, @decimal_point) ->
+        string_amount
         |> :erlang.binary_to_float
         |> __MODULE__.to_money(currency_code)
       true ->
-        amount_string
+        string_amount
         |> :erlang.binary_to_integer
         |> __MODULE__.to_money(currency_code)
     end
   end
 
-  def to_money(float, currency_code) when is_float(float) and is_binary(currency_code) do
+  def to_money(float_amount, currency_code) when is_float(float_amount) and is_binary(currency_code) do
     %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
     amount =
-      float
+      float_amount
       |> :erlang.float_to_binary(decimals: precision)
       |> String.replace(@decimal_point, "")
       |> String.to_integer
     %Money{amount: amount, currency_code: currency_code}
   end
 
-  def to_money(integer, currency_code) when is_integer(integer) and is_binary(currency_code) do
+  def to_money(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
     %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %Money{amount: integer * pow10(precision), currency_code: currency_code}
+    %Money{amount: integer_amount * pow10(precision), currency_code: currency_code}
   end
 
   @doc """
@@ -252,10 +252,19 @@ defmodule Money do
       iex> Money.from_cents(12_345, "EUR")
       %Money{amount: 12345000, currency_code: "EUR"}
 
+      iex> Money.from_cents("12345", "EUR")
+      %Money{amount: 12345000, currency_code: "EUR"}
+
   """
-  def from_cents(integer, currency_code) when is_integer(integer) and is_binary(currency_code) do
+  def from_cents(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
     %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %Money{amount: integer * pow10(precision - @cents_precision), currency_code: currency_code}
+    %Money{amount: integer_amount * pow10(precision - @cents_precision), currency_code: currency_code}
+  end
+
+  def from_cents(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
+    string_amount
+    |> :erlang.binary_to_integer
+    |> __MODULE__.from_cents(currency_code)
   end
 
   @doc """
