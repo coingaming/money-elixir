@@ -21,6 +21,12 @@ defmodule Money do
   @decimal_point "."
 
   @doc """
+  Returns raw currencies config
+  """
+  
+  def raw_config, do: @currency_config
+
+  @doc """
   Converts amounts of money from strings, floats or integers with currency symbols to Money.
 
   ## Examples from strings with currency symbols inside
