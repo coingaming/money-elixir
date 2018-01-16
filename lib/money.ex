@@ -14,7 +14,33 @@ defmodule Money do
                    |> File.read!
                    |> Poison.decode!(keys: :atoms)
 
-  @currency_code_map Enum.reduce(@currency_config, %{}, fn(%{code: code} = currency, acc) ->
+  @ubtc_and_mbtc %{
+    "uBTC" => %{
+      code: "uBTC",
+      precision: 2,
+      display: %{
+        code: "uBTC",
+        inputPrecision: 4,
+        name: "Bitcoin (micros)",
+        precision: 2,
+        shift: 0,
+        symbol: "u₿"
+      }
+    },
+    "mBTC" => %{
+      code: "mBTC",
+      precision: 5,
+      display: %{
+        code: "mBTC",
+        inputPrecision: 5,
+        name: "Bitcoin (millis)",
+        precision: 4,
+        shift: 3,
+        symbol: "m₿"
+      }
+    }
+  }
+  @currency_code_map Enum.reduce(@currency_config, @ubtc_and_mbtc, fn(%{code: code} = currency, acc) ->
     Map.put(acc, code, currency)
   end)
 
