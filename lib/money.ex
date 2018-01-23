@@ -8,15 +8,18 @@ defmodule Money do
   """
 
   @enforce_keys [:amount, :currency_code]
-  defstruct [:amount, :currency_code]
+  defstruct [:amount, :currency_code, :currency_unit]
 
   @currency_config Application.app_dir(:ih_money, "priv/currency-config/config.json")
                    |> File.read!
                    |> Poison.decode!(keys: :atoms)
 
-  @currency_code_map Enum.reduce(@currency_config, %{}, fn(%{code: code} = currency, acc) ->
-    Map.put(acc, code, currency)
-  end)
+  # In currency_config all keys are atoms, while we need strings. Next block of code transforms currency codes into strings
+  @currency_code_map (
+    Enum.reduce(@currency_config, %{}, fn {currency_code, specs = %{units: units}}, acc -> 
+      Map.put(acc, Kernel.to_string(currency_code), %{specs | units: Enum.reduce(units, %{}, fn {currency_unit, unit_specs}, acc1 -> 
+        Map.put(acc1, Kernel.to_string(currency_unit), unit_specs) end)})
+    end))
 
   @decimal_point "."
 
@@ -27,23 +30,21 @@ defmodule Money do
   def raw_config, do: @currency_config
 
   @doc """
-  Converts amounts of money from strings, floats or integers with currency symbols to Money.
+  Returns preprocessed currencies config
+  """
 
-  ## Examples from strings with currency symbols inside
+  def currency_config, do: @currency_code_map
 
-      iex> Money.to_money("$123.45")
-      %Money{amount: 12345000, currency_code: "USD"}
-
-      iex> Money.to_money("$123")
-      %Money{amount: 12300000, currency_code: "USD"}
-
-      iex> Money.to_money("$-123.45")
-      %Money{amount: -12345000, currency_code: "USD"}
+  @doc """
+  Converts amounts of money from strings, floats or integers to Money.
 
   ## Examples from strings with currency symbols as a separate argument
 
       iex> Money.to_money("123.456789", "EUR")
-      %Money{amount: 12345679, currency_code: "EUR"}
+      %Money{amount: 12345679, currency_code: "EUR", currency_unit: "EUR"}
+
+      iex> Money.to_money("123.456789", "BTC", "mBTC")
+      %Money{amount: 12345679, currency_code: "BTC", currency_unit: "mBTC"}
 
       iex> Money.to_money("+123.+456789", "EUR")
       ** (ArgumentError) argument error
@@ -52,35 +53,38 @@ defmodule Money do
       ** (ArgumentError) argument error
 
       iex> Money.to_money("0.0000099999999", "EUR")
-      %Money{amount: 1, currency_code: "EUR"}
+      %Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"}
 
       iex> Money.to_money("-0.00001", "EUR")
-      %Money{amount: -1, currency_code: "EUR"}
+      %Money{amount: -1, currency_code: "EUR", currency_unit: "EUR"}
 
   ## Examples from floats
 
       iex> Money.to_money(123.45, "EUR")
-      %Money{amount: 12345000, currency_code: "EUR"}
+      %Money{amount: 12345000, currency_code: "EUR", currency_unit: "EUR"}
+      
+      iex> Money.to_money(123.45, "EUR", "cent")
+      %Money{amount: 123450, currency_code: "EUR", currency_unit: "cent"}
 
       iex> Money.to_money(-1234.5678999, "EUR")
-      %Money{amount: -123456790, currency_code: "EUR"}
+      %Money{amount: -123456790, currency_code: "EUR", currency_unit: "EUR"}
 
       iex> Money.to_money(0.0000099999999, "EUR")
-      %Money{amount: 1, currency_code: "EUR"}
+      %Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"}
 
       iex> Money.to_money(1.0e-5, "EUR")
-      %Money{amount: 1, currency_code: "EUR"}
+      %Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"}
 
       iex> Money.to_money(-0.00001, "EUR")
-      %Money{amount: -1, currency_code: "EUR"}
+      %Money{amount: -1, currency_code: "EUR", currency_unit: "EUR"}
 
   ## Examples from integers
 
       iex> Money.to_money(12345, "EUR")
-      %Money{amount: 1234500000, currency_code: "EUR"}
+      %Money{amount: 1234500000, currency_code: "EUR", currency_unit: "EUR"}
 
       iex> Money.to_money(-12345, "EUR")
-      %Money{amount: -1234500000, currency_code: "EUR"}
+      %Money{amount: -1234500000, currency_code: "EUR", currency_unit: "EUR"}
 
   ## Examples with errors
 
@@ -93,63 +97,50 @@ defmodule Money do
       iex> Money.to_money("123.456.789", "EUR")
       ** (ArgumentError) argument error
 
-      iex> Money.to_money("SomeUnknownCurrency-123.45")
-      ** (ArgumentError) argument error
-
       iex> Money.to_money("123.45", "SomeUnknownCurrency")
       ** (ArgumentError) argument error
 
   """
-  for %{code: code,
-        display: %{code:           display_code,
-                   inputPrecision: _display_inputPrecision,
-                   name:           _display_name,
-                   precision:      _display_precision,
-                   shift:          _display_shift,
-                   symbol:         display_symbol},
-        precision: _precision} <- @currency_config
+  def to_money(amount, currency_code) when currency_code in ["mBTC", "uBTC", "sat"] do
+    __MODULE__.to_money(amount, "BTC", currency_code)
+  end
+  def to_money(amount, currency_code), do: __MODULE__.to_money(amount, currency_code, currency_code)
+  def to_money(string_amount, currency_code, currency_unit) when is_binary(string_amount) and
+                                                                 is_binary(currency_code) and
+                                                                 is_binary(currency_unit)
   do
-    if is_binary(display_symbol) do
-      def to_money(unquote(display_symbol) <> amount = string) when is_binary(string) do
-        to_money(amount, unquote(code))
-      end
-    end
-    if is_binary(display_code) do
-      def to_money(unquote(display_code) <> amount = string) when is_binary(string) do
-        to_money(amount, unquote(code))
-      end
-    end
-  end
-  def to_money(string) when is_binary(string) do
-    raise ArgumentError
-  end
-
-  def to_money(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
     cond do
       String.contains?(string_amount, @decimal_point) ->
         string_amount
         |> :erlang.binary_to_float
-        |> __MODULE__.to_money(currency_code)
+        |> __MODULE__.to_money(currency_code, currency_unit)
       true ->
         string_amount
         |> :erlang.binary_to_integer
-        |> __MODULE__.to_money(currency_code)
+        |> __MODULE__.to_money(currency_code, currency_unit)
     end
   end
 
-  def to_money(float_amount, currency_code) when is_float(float_amount) and is_binary(currency_code) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+  def to_money(float_amount, currency_code, currency_unit) when is_float(float_amount) and
+                                                 is_binary(currency_code) and 
+                                                 is_binary(currency_unit)
+  do
+    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+    %{shift: shift} = Map.get(currency[:units], currency_unit) || raise ArgumentError
     amount =
       float_amount
-      |> :erlang.float_to_binary(decimals: precision)
+      |> :erlang.float_to_binary(decimals: precision - shift)
       |> String.replace(@decimal_point, "")
       |> String.to_integer
-    %Money{amount: amount, currency_code: currency_code}
+    %Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}
   end
 
-  def to_money(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %Money{amount: integer_amount * pow10(precision), currency_code: currency_code}
+  def to_money(integer_amount, currency_code, currency_unit) when is_integer(integer_amount) and
+                                                                  is_binary(currency_code) and
+                                                                  is_binary(currency_unit) do
+    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+    %{shift: shift} = Map.get(currency[:units], currency_unit) || raise ArgumentError
+    %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: currency_unit}
   end
 
   @doc """
@@ -159,6 +150,9 @@ defmodule Money do
 
       iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP"})
       "123.45678"
+
+      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP", currency_unit: "cent"})
+      "12345.678"
 
       iex> Money.to_string(%Money{amount: -12_345_678, currency_code: "PHP"})
       "-123.45678"
@@ -190,13 +184,20 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR"})
       "123456789012345678901234567890123456789012345.6789"
 
+      iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR", currency_unit: "cent"})
+      "12345678901234567890123456789012345678901234567.89"
+
   """
-  def to_string(%Money{amount: amount, currency_code: currency_code}) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+  def to_string(money = %Money{currency_code: currency_code, currency_unit: currency_unit}) when is_nil(currency_unit) do
+    __MODULE__.to_string(%Money{money | currency_unit: currency_code})
+  end
+  def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}) do
+    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+    %{shift: shift} = Map.get(currency[:units], currency_unit) || raise ArgumentError
     {integer_string, fractional_string} =
       amount
       |> Integer.to_string
-      |> String.split_at(-precision)
+      |> String.split_at(-(precision-shift))
 
     (integer_string
      |> String.pad_leading(1, "0"))
@@ -204,7 +205,7 @@ defmodule Money do
     @decimal_point
     <>
     (fractional_string
-     |> String.pad_leading(precision, "0")
+     |> String.pad_leading(precision-shift, "0")
      |> String.trim_trailing("0")
      |> String.pad_leading(1, "0"))
   end
@@ -248,8 +249,6 @@ defmodule Money do
     |> :erlang.binary_to_float
   end
 
-  @cents_precision 2
-
   @doc """
   Converts amounts of money from integer cents with currency symbols to Money.
 
@@ -263,8 +262,9 @@ defmodule Money do
 
   """
   def from_cents(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %Money{amount: integer_amount * pow10(precision - @cents_precision), currency_code: currency_code}
+    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+    %{shift: shift} = Map.get(currency[:units], "cent") || raise ArgumentError
+    %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code}
   end
 
   def from_cents(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
@@ -286,8 +286,9 @@ defmodule Money do
 
   """
   def to_cents(%Money{amount: amount, currency_code: currency_code}) do
-    %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    round(amount / pow10(precision - @cents_precision))
+    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
+    %{shift: shift} = Map.get(currency[:units], "cent") || raise ArgumentError
+    round(amount / pow10(precision - shift))
   end
 
   @pow10_max 104
