@@ -264,47 +264,60 @@ defmodule Money do
     |> :erlang.binary_to_float
   end
 
-  @doc """
-  Converts amounts of money from integer cents with currency symbols to Money.
+  @currency_config
+  |> Enum.flat_map(fn({_, %{units: units = %{}}}) -> Map.keys(units) end)
+  |> Enum.uniq
+  |> Enum.each(fn(unit) -> 
 
-  ## Examples
+    from_function_name = "from_#{unit}" |> String.to_atom
+    to_function_name = "to_#{unit}" |> String.to_atom
+    unit_string = unit |> Atom.to_string
 
-      iex> Money.from_cents(12_345, "EUR")
-      %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
+    @doc """
+    Converts amounts of money from integer cents with currency symbols to Money.
 
-      iex> Money.from_cents("12345", "EUR")
-      %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
+    ## Examples
 
-  """
-  def from_cents(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
-    %{precision: precision, units: %{"cent" => %{shift: shift}}} =
-      Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: "cent"}
-  end
+        iex> Money.from_cent(12_345, "EUR")
+        %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
 
-  def from_cents(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
-    string_amount
-    |> :erlang.binary_to_integer
-    |> from_cents(currency_code)
-  end
+        iex> Money.from_cent("12345", "EUR")
+        %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
 
-  @doc """
-  Converts from Money to integer cents.
+    """
+    @spec unquote(from_function_name)(String.t | pos_integer, String.t) :: %Money{}
+    def unquote(from_function_name)(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
+      %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
+        Map.get(@currency_code_map, currency_code) || raise ArgumentError
+      %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: "cent"}
+    end
+    def unquote(from_function_name)(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
+      string_amount
+      |> :erlang.binary_to_integer
+      |> unquote(from_function_name)(currency_code)
+    end
 
-  ## Examples
+    @doc """
+    Converts from Money to integer cents.
 
-      iex> Money.to_cents(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "cent"})
-      12_345
+    ## Examples
 
-      iex> Money.to_cents(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "cent"})
-      12_346
+        iex> Money.to_cent(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "cent"})
+        12_345
 
-  """
-  def to_cents(%Money{amount: amount, currency_code: currency_code}) do
-    %{precision: precision, units: %{"cent" => %{shift: shift}}} =
-      Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    round(amount / pow10(precision - shift))
-  end
+        iex> Money.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "cent"})
+        12_346
+
+    """
+    @spec unquote(to_function_name)(%Money{}) :: pos_integer
+    def unquote(to_function_name)(%Money{amount: amount, currency_code: currency_code}) do
+      %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
+        Map.get(@currency_code_map, currency_code) || raise ArgumentError
+      round(amount / pow10(precision - shift))
+    end
+
+  end)
+
 
   @pow10_max 104
   Enum.reduce 0..@pow10_max, 1, fn int, acc ->
