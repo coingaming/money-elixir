@@ -7,7 +7,7 @@ defmodule Money do
 
   """
 
-  @enforce_keys [:amount, :currency_code]
+  @enforce_keys [:amount, :currency_code, :currency_unit]
   defstruct [:amount, :currency_code, :currency_unit]
 
   @currency_config Application.app_dir(:ih_money, "priv/currency-config/config.json")
@@ -206,9 +206,6 @@ defmodule Money do
       "12345678901234567890123456789012345678901234567.89"
 
   """
-  def to_string(money = %Money{currency_code: currency_code, currency_unit: currency_unit}) when is_nil(currency_unit) do
-    __MODULE__.to_string(%Money{money | currency_unit: currency_code})
-  end
   def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
       Map.get(@currency_code_map, currency_code) || raise ArgumentError
@@ -282,7 +279,7 @@ defmodule Money do
   def from_cents(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
     %{precision: precision, units: %{"cent" => %{shift: shift}}} =
       Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code}
+    %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: "cent"}
   end
 
   def from_cents(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
