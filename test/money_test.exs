@@ -61,8 +61,6 @@ defmodule Money.MoneyTest do
       %Money{amount: 1234500000, currency_code: "EUR", currency_unit: "EUR"}
     assert Money.to_money(-12345, "EUR") ==
       %Money{amount: -1234500000, currency_code: "EUR", currency_unit: "EUR"}
-    assert Money.to_money(500, "mBTC") ==
-      %Money{amount: 50000000, currency_code: "BTC", currency_unit: "mBTC"}
     assert_raise(ArgumentError, fn -> Money.to_money("123.456!789", "EUR") end)
     assert_raise(ArgumentError, fn -> Money.to_money("123!456!789", "EUR") end)
     assert_raise(ArgumentError, fn -> Money.to_money("123.456.789", "EUR") end)

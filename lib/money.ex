@@ -16,9 +16,30 @@ defmodule Money do
 
   # In currency_config all keys are atoms, while we need strings. Next block of code transforms currency codes into strings
   @currency_code_map (
-    Enum.reduce(@currency_config, %{}, fn {currency_code, specs = %{units: units}}, acc -> 
-      Map.put(acc, Kernel.to_string(currency_code), %{specs | units: Enum.reduce(units, %{}, fn {currency_unit, unit_specs}, acc1 -> 
-        Map.put(acc1, Kernel.to_string(currency_unit), unit_specs) end)})
+    Enum.reduce(@currency_config, %{}, fn {currency_code, specs = %{units: units,
+                                                                    code: code,
+                                                                    precision: precision}},
+                                                                    acc when is_atom(currency_code) and
+                                                                             is_binary(code) and
+                                                                             is_integer(precision) and
+                                                                             is_map(units) -> 
+      Map.put(acc, Atom.to_string(currency_code), %{specs | units: 
+        Enum.reduce(units, %{}, fn {currency_unit, %{code: unit_code,
+                                                     name: unit_name,
+                                                     displayPrecision: displayPrecision,
+                                                     inputPrecision: inputPrecision,
+                                                     shift: shift,
+                                                     symbol: symbol} = unit_specs},
+                                                     units_acc when is_atom(currency_unit) and
+                                                                    is_binary(unit_code) and
+                                                                    is_binary(unit_name) and
+                                                                    is_integer(displayPrecision) and
+                                                                    is_integer(inputPrecision) and
+                                                                    is_integer(shift) and
+                                                                    is_binary(symbol) and
+                                                                    ((precision - shift) >= 0) 
+                                                                    -> 
+          Map.put(units_acc, Atom.to_string(currency_unit), unit_specs) end)})
     end))
 
   @decimal_point "."
@@ -101,10 +122,7 @@ defmodule Money do
       ** (ArgumentError) argument error
 
   """
-  def to_money(amount, currency_code) when currency_code in ["mBTC", "uBTC", "sat"] do
-    __MODULE__.to_money(amount, "BTC", currency_code)
-  end
-  def to_money(amount, currency_code), do: __MODULE__.to_money(amount, currency_code, currency_code)
+  def to_money(amount, currency_code), do: to_money(amount, currency_code, currency_code)
   def to_money(string_amount, currency_code, currency_unit) when is_binary(string_amount) and
                                                                  is_binary(currency_code) and
                                                                  is_binary(currency_unit)
@@ -113,11 +131,11 @@ defmodule Money do
       String.contains?(string_amount, @decimal_point) ->
         string_amount
         |> :erlang.binary_to_float
-        |> __MODULE__.to_money(currency_code, currency_unit)
+        |> to_money(currency_code, currency_unit)
       true ->
         string_amount
         |> :erlang.binary_to_integer
-        |> __MODULE__.to_money(currency_code, currency_unit)
+        |> to_money(currency_code, currency_unit)
     end
   end
 
@@ -125,8 +143,8 @@ defmodule Money do
                                                  is_binary(currency_code) and 
                                                  is_binary(currency_unit)
   do
-    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %{shift: shift} = Map.get(currency[:units], currency_unit) || raise ArgumentError
+    %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
+      Map.get(@currency_code_map, currency_code) || raise ArgumentError
     amount =
       float_amount
       |> :erlang.float_to_binary(decimals: precision - shift)
@@ -138,8 +156,8 @@ defmodule Money do
   def to_money(integer_amount, currency_code, currency_unit) when is_integer(integer_amount) and
                                                                   is_binary(currency_code) and
                                                                   is_binary(currency_unit) do
-    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %{shift: shift} = Map.get(currency[:units], currency_unit) || raise ArgumentError
+    %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
+      Map.get(@currency_code_map, currency_code) || raise ArgumentError
     %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: currency_unit}
   end
 
@@ -192,8 +210,8 @@ defmodule Money do
     __MODULE__.to_string(%Money{money | currency_unit: currency_code})
   end
   def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}) do
-    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %{shift: shift} = Map.get(currency[:units], currency_unit) || raise ArgumentError
+    %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
+      Map.get(@currency_code_map, currency_code) || raise ArgumentError
     {integer_string, fractional_string} =
       amount
       |> Integer.to_string
@@ -262,15 +280,15 @@ defmodule Money do
 
   """
   def from_cents(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
-    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %{shift: shift} = Map.get(currency[:units], "cent") || raise ArgumentError
+    %{precision: precision, units: %{"cent" => %{shift: shift}}} =
+      Map.get(@currency_code_map, currency_code) || raise ArgumentError
     %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code}
   end
 
   def from_cents(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
     string_amount
     |> :erlang.binary_to_integer
-    |> __MODULE__.from_cents(currency_code)
+    |> from_cents(currency_code)
   end
 
   @doc """
@@ -286,8 +304,8 @@ defmodule Money do
 
   """
   def to_cents(%Money{amount: amount, currency_code: currency_code}) do
-    currency = %{precision: precision} = Map.get(@currency_code_map, currency_code) || raise ArgumentError
-    %{shift: shift} = Map.get(currency[:units], "cent") || raise ArgumentError
+    %{precision: precision, units: %{"cent" => %{shift: shift}}} =
+      Map.get(@currency_code_map, currency_code) || raise ArgumentError
     round(amount / pow10(precision - shift))
   end
 
