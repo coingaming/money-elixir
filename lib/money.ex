@@ -166,40 +166,40 @@ defmodule Money do
 
   ## Examples
 
-      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP"})
+      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP", currency_unit: "GBP"})
       "123.45678"
 
       iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "GBP", currency_unit: "cent"})
       "12345.678"
 
-      iex> Money.to_string(%Money{amount: -12_345_678, currency_code: "PHP"})
+      iex> Money.to_string(%Money{amount: -12_345_678, currency_code: "PHP", currency_unit: "PHP"})
       "-123.45678"
 
-      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "BTC"})
+      iex> Money.to_string(%Money{amount: 12_345_678, currency_code: "BTC", currency_unit: "BTC"})
       "0.12345678"
 
-      iex> Money.to_string(%Money{amount: 100_000, currency_code: "EUR"})
+      iex> Money.to_string(%Money{amount: 100_000, currency_code: "EUR", currency_unit: "EUR"})
       "1.0"
 
-      iex> Money.to_string(%Money{amount: 1_000, currency_code: "EUR"})
+      iex> Money.to_string(%Money{amount: 1_000, currency_code: "EUR", currency_unit: "EUR"})
       "0.01"
 
-      iex> Money.to_string(%Money{amount: 999, currency_code: "EUR"})
+      iex> Money.to_string(%Money{amount: 999, currency_code: "EUR", currency_unit: "EUR"})
       "0.00999"
 
-      iex> Money.to_string(%Money{amount: 100, currency_code: "EUR"})
+      iex> Money.to_string(%Money{amount: 100, currency_code: "EUR", currency_unit: "EUR"})
       "0.001"
 
-      iex> Money.to_string(%Money{amount: 1, currency_code: "EUR"})
+      iex> Money.to_string(%Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"})
       "0.00001"
 
-      iex> Money.to_string(%Money{amount: 1, currency_code: "BTC"})
+      iex> Money.to_string(%Money{amount: 1, currency_code: "BTC", currency_unit: "BTC"})
       "0.00000001"
 
-      iex> Money.to_string(%Money{amount: 0, currency_code: "BTC"})
+      iex> Money.to_string(%Money{amount: 0, currency_code: "BTC", currency_unit: "BTC"})
       "0.0"
 
-      iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR"})
+      iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR", currency_unit: "EUR"})
       "123456789012345678901234567890123456789012345.6789"
 
       iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR", currency_unit: "cent"})
@@ -230,31 +230,31 @@ defmodule Money do
 
   ## Examples
 
-      iex> Money.to_float(%Money{amount: 12_345_000, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "EUR"})
       123.45
 
-      iex> Money.to_float(%Money{amount: 12_345_678, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "EUR"})
       123.45678
 
-      iex> Money.to_float(%Money{amount: -12_345_000, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: -12_345_000, currency_code: "EUR", currency_unit: "EUR"})
       -123.45
 
-      iex> Money.to_float(%Money{amount: 123_450, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 123_450, currency_code: "EUR", currency_unit: "EUR"})
       1.2345
 
-      iex> Money.to_float(%Money{amount: 123_456, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 123_456, currency_code: "EUR", currency_unit: "EUR"})
       1.23456
 
-      iex> Money.to_float(%Money{amount: 123, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 123, currency_code: "EUR", currency_unit: "EUR"})
       0.00123
 
-      iex> Money.to_float(%Money{amount: 1, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"})
       1.0e-5
 
-      iex> Money.to_float(%Money{amount: 0, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 0, currency_code: "EUR", currency_unit: "EUR"})
       0.0
 
-      iex> Money.to_float(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR"})
+      iex> Money.to_float(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR", currency_unit: "EUR"})
       1.2345678901234567e44
 
   """
@@ -270,10 +270,10 @@ defmodule Money do
   ## Examples
 
       iex> Money.from_cents(12_345, "EUR")
-      %Money{amount: 12345000, currency_code: "EUR"}
+      %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
 
       iex> Money.from_cents("12345", "EUR")
-      %Money{amount: 12345000, currency_code: "EUR"}
+      %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
 
   """
   def from_cents(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
@@ -293,10 +293,10 @@ defmodule Money do
 
   ## Examples
 
-      iex> Money.to_cents(%Money{amount: 12_345_000, currency_code: "EUR"})
+      iex> Money.to_cents(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "cent"})
       12_345
 
-      iex> Money.to_cents(%Money{amount: 12_345_678, currency_code: "EUR"})
+      iex> Money.to_cents(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "cent"})
       12_346
 
   """
