@@ -10,51 +10,9 @@ defmodule Money do
   @enforce_keys [:amount, :currency_code, :currency_unit]
   defstruct [:amount, :currency_code, :currency_unit]
 
-  @currency_config Application.app_dir(:ih_money, "priv/currency-config/config.json")
-                   |> File.read!
-                   |> Poison.decode!(keys: :atoms)
-
-  # In currency_config all keys are atoms, while we need strings. Next block of code transforms currency codes into strings
-  @currency_code_map (
-    Enum.reduce(@currency_config, %{}, fn {currency_code, specs = %{units: units,
-                                                                    code: code,
-                                                                    precision: precision}},
-                                                                    acc when is_atom(currency_code) and
-                                                                             is_binary(code) and
-                                                                             is_integer(precision) and
-                                                                             is_map(units) -> 
-      Map.put(acc, Atom.to_string(currency_code), %{specs | units: 
-        Enum.reduce(units, %{}, fn {currency_unit, %{code: unit_code,
-                                                     name: unit_name,
-                                                     displayPrecision: displayPrecision,
-                                                     inputPrecision: inputPrecision,
-                                                     shift: shift,
-                                                     symbol: symbol} = unit_specs},
-                                                     units_acc when is_atom(currency_unit) and
-                                                                    is_binary(unit_code) and
-                                                                    is_binary(unit_name) and
-                                                                    is_integer(displayPrecision) and
-                                                                    is_integer(inputPrecision) and
-                                                                    is_integer(shift) and
-                                                                    is_binary(symbol) and
-                                                                    ((precision - shift) >= 0) 
-                                                                    -> 
-          Map.put(units_acc, Atom.to_string(currency_unit), unit_specs) end)})
-    end))
-
   @decimal_point "."
 
-  @doc """
-  Returns raw currencies config
-  """
-  
-  def raw_config, do: @currency_config
-
-  @doc """
-  Returns preprocessed currencies config
-  """
-
-  def currency_config, do: @currency_code_map
+  @currency_code_map Money.Constants.currency_config()
 
   @doc """
   Converts amounts of money from strings, floats or integers to Money.
@@ -264,67 +222,12 @@ defmodule Money do
     |> :erlang.binary_to_float
   end
 
-  @currency_config
-  |> Enum.flat_map(fn({_, %{units: units = %{}}}) -> Map.keys(units) end)
-  |> Enum.uniq
-  |> Enum.each(fn(unit) -> 
-
-    from_function_name = "from_#{unit}" |> String.to_atom
-    to_function_name = "to_#{unit}" |> String.to_atom
-    unit_string = unit |> Atom.to_string
-
-    @doc """
-    Converts amounts of money from integer cents with currency symbols to Money.
-
-    ## Examples
-
-        iex> Money.from_cent(12_345, "EUR")
-        %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
-
-        iex> Money.from_cent("12345", "EUR")
-        %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
-
-    """
-    @spec unquote(from_function_name)(String.t | pos_integer, String.t) :: %Money{}
-    def unquote(from_function_name)(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
-      %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
-        Map.get(@currency_code_map, currency_code) || raise ArgumentError
-      %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: "cent"}
-    end
-    def unquote(from_function_name)(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
-      string_amount
-      |> :erlang.binary_to_integer
-      |> unquote(from_function_name)(currency_code)
-    end
-
-    @doc """
-    Converts from Money to integer cents.
-
-    ## Examples
-
-        iex> Money.to_cent(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "cent"})
-        12_345
-
-        iex> Money.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "cent"})
-        12_346
-
-    """
-    @spec unquote(to_function_name)(%Money{}) :: pos_integer
-    def unquote(to_function_name)(%Money{amount: amount, currency_code: currency_code}) do
-      %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
-        Map.get(@currency_code_map, currency_code) || raise ArgumentError
-      round(amount / pow10(precision - shift))
-    end
-
-  end)
-
-
   @pow10_max 104
   Enum.reduce 0..@pow10_max, 1, fn int, acc ->
-    defp pow10(unquote(int)), do: unquote(acc)
+    def pow10(unquote(int)), do: unquote(acc)
     acc * 10
   end
-  defp pow10(int) when int > @pow10_max do
+  def pow10(int) when int > @pow10_max do
     pow10(@pow10_max) * pow10(int - @pow10_max)
   end
 end

@@ -68,14 +68,14 @@ defmodule Money.MoneyTest do
   end
 
   test "Money.from_cent" do
-    assert Money.from_cent(12_345, "EUR") ==
+    assert Money.Int.from_cent(12_345, "EUR") ==
       %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
-    assert Money.from_cent("12345", "EUR") ==
+    assert Money.Int.from_cent("12345", "EUR") ==
       %Money{amount: 12345000, currency_code: "EUR", currency_unit: "cent"}
  end
 
   test "Money.to_cent" do
-    assert Money.to_cent(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "EUR"}) == 12_345
-    assert Money.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "EUR"}) == 12_346
+    assert Money.Int.to_cent(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "EUR"}) == 12_345
+    assert Money.Int.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "EUR"}) == 12_346
   end
 end
