@@ -12,7 +12,7 @@ defmodule Money do
 
   @decimal_point "."
 
-  @currency_code_map Money.Constants.currency_config()
+  @currency_config Money.Constants.currency_config()
 
   @doc """
   Converts amounts of money from strings, floats or integers to Money.
@@ -102,7 +102,7 @@ defmodule Money do
                                                  is_binary(currency_unit)
   do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_code_map, currency_code) || raise ArgumentError
+      Map.get(@currency_config, currency_code) || raise ArgumentError
     amount =
       float_amount
       |> :erlang.float_to_binary(decimals: precision - shift)
@@ -115,7 +115,7 @@ defmodule Money do
                                                                   is_binary(currency_code) and
                                                                   is_binary(currency_unit) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_code_map, currency_code) || raise ArgumentError
+      Map.get(@currency_config, currency_code) || raise ArgumentError
     %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: currency_unit}
   end
 
@@ -166,7 +166,7 @@ defmodule Money do
   """
   def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_code_map, currency_code) || raise ArgumentError
+      Map.get(@currency_config, currency_code) || raise ArgumentError
     {integer_string, fractional_string} =
       amount
       |> Integer.to_string

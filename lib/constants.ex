@@ -1,11 +1,11 @@
 defmodule Money.Constants do
-  @currency_config Application.app_dir(:ih_money, "priv/currency-config/config.json")
+  @raw_config Application.app_dir(:ih_money, "priv/currency-config/config.json")
                    |> File.read!
                    |> Poison.decode!(keys: :atoms)
 
   # In currency_config all keys are atoms, while we need strings. Next block of code transforms currency codes into strings
-  @currency_code_map (
-    Enum.reduce(@currency_config, %{}, fn {currency_code, specs = %{units: units,
+  @currency_config (
+    Enum.reduce(@raw_config, %{}, fn {currency_code, specs = %{units: units,
                                                                     code: code,
                                                                     precision: precision}},
                                                                     acc when is_atom(currency_code) and
@@ -35,11 +35,11 @@ defmodule Money.Constants do
   Returns raw currencies config
   """
   
-  def raw_config, do: @currency_config
+  def raw_config, do: @raw_config
 
   @doc """
   Returns preprocessed currencies config
   """
 
-  def currency_config, do: @currency_code_map
+  def currency_config, do: @currency_config
 end
