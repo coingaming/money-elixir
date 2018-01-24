@@ -1,8 +1,8 @@
 defmodule Money.Int do
-  @currency_config Money.Constants.raw_config()
-  @currency_code_map Money.Constants.currency_config()
+  @raw_config Money.Constants.raw_config()
+  @currency_config Money.Constants.currency_config()
 
-  @currency_config
+  @raw_config
   |> Enum.flat_map(fn({_, %{units: units = %{}}}) -> Map.keys(units) end)
   |> Enum.uniq
   |> Enum.each(fn(unit) -> 
@@ -26,7 +26,7 @@ defmodule Money.Int do
     @spec unquote(from_function_name)(String.t | pos_integer, String.t) :: %Money{}
     def unquote(from_function_name)(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
       %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
-        Map.get(@currency_code_map, currency_code) || raise ArgumentError
+        Map.get(@currency_config, currency_code) || raise ArgumentError
       %Money{amount: integer_amount * Money.pow10(precision - shift), currency_code: currency_code, currency_unit: "cent"}
     end
     def unquote(from_function_name)(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
@@ -50,7 +50,7 @@ defmodule Money.Int do
     @spec unquote(to_function_name)(%Money{}) :: pos_integer
     def unquote(to_function_name)(%Money{amount: amount, currency_code: currency_code}) do
       %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
-        Map.get(@currency_code_map, currency_code) || raise ArgumentError
+        Map.get(@currency_config, currency_code) || raise ArgumentError
       round(amount / Money.pow10(precision - shift))
     end
 
