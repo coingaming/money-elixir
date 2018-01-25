@@ -79,6 +79,16 @@ defmodule Money.MoneyTest do
     assert Money.Int.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "EUR"}) == 12_346
   end
 
+  test "Money.pow10" do
+    pow = 105
+    assert 1..pow |> Enum.reduce(1, fn(_, acc) -> acc * 10 end) == Money.pow10(pow)
+  end
+
+  test "Money.Constants" do
+    assert %{:BTC => %{:units => %{:BTC => %{:shift => shift}}}} = Money.Constants.raw_config()
+    assert %{"BTC" => %{:units => %{"BTC" => %{:shift => ^shift}}}} = Money.Constants.currency_config()
+  end
+
   test "Money.Int" do
     Money.Constants.currency_config()
     |> Enum.each(fn {currency_code, currency_map = %{}} -> 

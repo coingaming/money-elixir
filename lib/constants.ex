@@ -34,12 +34,10 @@ defmodule Money.Constants do
   @doc """
   Returns raw currencies config
   """
-  @spec raw_config() :: %{}
   def raw_config, do: @raw_config
 
   @doc """
   Returns preprocessed currencies config
   """
-  @spec currency_config() :: %{}
   def currency_config, do: @currency_config
 end
