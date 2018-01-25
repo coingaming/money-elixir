@@ -78,4 +78,16 @@ defmodule Money.MoneyTest do
     assert Money.Int.to_cent(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "EUR"}) == 12_345
     assert Money.Int.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "EUR"}) == 12_346
   end
+
+  test "Money.Int" do
+    Money.Constants.currency_config()
+    |> Enum.each(fn {currency_code, currency_map = %{}} -> 
+      Enum.each(currency_map[:units], fn {currency_unit, %{}} ->
+        money = Money.to_money("12312", currency_code, currency_unit)
+        cents = :erlang.apply(Money.Int, String.to_atom("to_#{currency_unit}"), [money])
+        money_from_cents = :erlang.apply(Money.Int, String.to_atom("from_#{currency_unit}"), [cents, currency_code])
+        assert money == money_from_cents
+      end)
+    end)
+  end
 end

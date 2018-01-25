@@ -27,7 +27,7 @@ defmodule Money.Int do
     def unquote(from_function_name)(integer_amount, currency_code) when is_integer(integer_amount) and is_binary(currency_code) do
       %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
         Map.get(@currency_config, currency_code) || raise ArgumentError
-      %Money{amount: integer_amount * Money.pow10(precision - shift), currency_code: currency_code, currency_unit: "cent"}
+      %Money{amount: integer_amount * Money.pow10(precision - shift), currency_code: currency_code, currency_unit: unquote(unit_string)}
     end
     def unquote(from_function_name)(string_amount, currency_code) when is_binary(string_amount) and is_binary(currency_code) do
       string_amount
