@@ -80,7 +80,9 @@ defmodule Money do
       ** (ArgumentError) argument error
 
   """
+  @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t) :: %Money{}
   def to_money(amount, currency_code), do: to_money(amount, currency_code, currency_code)
+  @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t, currency_unit :: String.t) :: %Money{}
   def to_money(string_amount, currency_code, currency_unit) when is_binary(string_amount) and
                                                                  is_binary(currency_code) and
                                                                  is_binary(currency_unit)
@@ -164,6 +166,7 @@ defmodule Money do
       "12345678901234567890123456789012345678901234567.89"
 
   """
+  @spec to_string(%Money{}) :: String.t
   def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
       Map.get(@currency_config, currency_code) || raise ArgumentError
@@ -216,6 +219,7 @@ defmodule Money do
       1.2345678901234567e44
 
   """
+  @spec to_float(%Money{}) :: float()
   def to_float(%Money{} = money) do
     money
     |> __MODULE__.to_string
