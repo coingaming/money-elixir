@@ -41,7 +41,7 @@ defmodule Money do
 
       iex> Money.to_money(123.45, "EUR")
       %Money{amount: 12345000, currency_code: "EUR", currency_unit: "EUR"}
-      
+
       iex> Money.to_money(123.45, "EUR", "cent")
       %Money{amount: 123450, currency_code: "EUR", currency_unit: "cent"}
 
@@ -80,6 +80,19 @@ defmodule Money do
       ** (ArgumentError) argument error
 
   """
+  Money.Constants.currency_config()
+  |> Enum.each(fn({currency_code, %{units: units = %{}}}) ->
+      units
+      |> Enum.each(fn({currency_unit, %{}}) ->
+          def switch_unit(money = %Money{currency_code: unquote(currency_code)}, unquote(currency_unit)) do
+            %Money{money | currency_unit: unquote(currency_unit)}
+          end
+      end)
+  end)
+
+
+
+
   @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t) :: %Money{}
   def to_money(amount, currency_code), do: to_money(amount, currency_code, currency_code)
   @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t, currency_unit :: String.t) :: %Money{}
@@ -100,7 +113,7 @@ defmodule Money do
   end
 
   def to_money(float_amount, currency_code, currency_unit) when is_float(float_amount) and
-                                                 is_binary(currency_code) and 
+                                                 is_binary(currency_code) and
                                                  is_binary(currency_unit)
   do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
