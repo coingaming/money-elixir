@@ -135,7 +135,8 @@ defmodule Money do
   end
 
   @doc """
-  Converts from Money to strings.
+  Converts from Money to string. When precision parameter is used function cuts off unneeded
+  digits i.e. it works like Float.floor.
 
   ## Examples
 
@@ -178,25 +179,54 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 12345678901234567890123456789012345678901234567890, currency_code: "EUR", currency_unit: "cent"})
       "12345678901234567890123456789012345678901234567.89"
 
+      iex> Money.to_string(%Money{amount: 12345, currency_code: "BTC", currency_unit: "uBTC"})
+      "123.45"
+
+      iex> Money.to_string(%Money{amount: 12345, currency_code: "BTC", currency_unit: "uBTC"},0)
+      "123"
+
+      iex> Money.to_string(%Money{amount: 12345, currency_code: "BTC", currency_unit: "uBTC"},1)
+      "123.4"
+
+      iex> Money.to_string(%Money{amount: 12345, currency_code: "BTC", currency_unit: "uBTC"},2)
+      "123.45"
+
+      iex> Money.to_string(%Money{amount: 12345, currency_code: "BTC", currency_unit: "uBTC"},3)
+      "123.450"
+
   """
-  @spec to_string(%Money{}) :: String.t
-  def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}) do
-    %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
+  @spec to_string(%Money{}, nil | non_neg_integer()) :: String.t
+  def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit},
+                precision \\ nil) do
+    %{precision: currency_precision, units: %{^currency_unit => %{shift: shift}}} =
       Map.get(@currency_config, currency_code) || raise ArgumentError
+    unit_precision = currency_precision - shift
     {integer_string, fractional_string} =
       amount
       |> Integer.to_string
-      |> String.split_at(-(precision-shift))
+      |> String.split_at(-unit_precision)
 
     (integer_string
      |> String.pad_leading(1, "0"))
     <>
-    @decimal_point
-    <>
-    (fractional_string
-     |> String.pad_leading(precision-shift, "0")
-     |> String.trim_trailing("0")
-     |> String.pad_leading(1, "0"))
+    cond do
+      precision == 0 ->
+        ""
+      is_integer(precision) and precision > 0 ->
+        @decimal_point
+        <>
+        (fractional_string
+        |> String.pad_leading(unit_precision, "0")
+        |> String.slice(0, precision)
+        |> String.pad_trailing(precision, "0"))
+      true ->
+        @decimal_point
+        <>
+        (fractional_string
+        |> String.pad_leading(unit_precision, "0")
+        |> String.trim_trailing("0")
+        |> String.pad_leading(1, "0"))
+    end
   end
 
   @doc """
