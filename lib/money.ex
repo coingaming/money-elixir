@@ -135,7 +135,8 @@ defmodule Money do
   end
 
   @doc """
-  Converts from Money to strings.
+  Converts from Money to string. When precision parameter is used function cuts off unneeded
+  digits i.e. it works like Float.floor.
 
   ## Examples
 
