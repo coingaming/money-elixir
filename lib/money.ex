@@ -76,8 +76,8 @@ defmodule Money do
       iex> Money.to_money("123.456.789", "EUR")
       ** (ArgumentError) argument error
 
-      iex> Money.to_money("123.45", "SomeUnknownCurrency")
-      ** (ArgumentError) argument error
+      iex> Money.to_money("123.45", "Euro")
+      ** (ArgumentError) Unsupported currency 'Euro'
 
   """
   Money.Constants.currency_config()
@@ -117,7 +117,7 @@ defmodule Money do
                                                  is_binary(currency_unit)
   do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_config, currency_code) || raise ArgumentError
+      Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
     amount =
       float_amount
       |> :erlang.float_to_binary(decimals: precision - shift)
@@ -130,7 +130,7 @@ defmodule Money do
                                                                   is_binary(currency_code) and
                                                                   is_binary(currency_unit) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_config, currency_code) || raise ArgumentError
+      Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
     %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: currency_unit}
   end
 
@@ -194,12 +194,15 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 12345, currency_code: "BTC", currency_unit: "uBTC"},3)
       "123.450"
 
+      iex> Money.to_string(%Money{amount: 12345, currency_code: "Euro", currency_unit: "uBTC"},3)
+      ** (ArgumentError) Unsupported currency 'Euro'
+
   """
   @spec to_string(%Money{}, nil | non_neg_integer()) :: String.t
   def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit},
                 precision \\ nil) do
     %{precision: currency_precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_config, currency_code) || raise ArgumentError
+      Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
     unit_precision = currency_precision - shift
     {integer_string, fractional_string} =
       amount

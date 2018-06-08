@@ -1,5 +1,6 @@
 defmodule Money.MoneyTest do
   use ExUnit.Case, async: true
+  doctest Money
 
   test "Money.to_float" do
     assert Money.to_float(%Money{amount: 12_345_000, currency_code: "EUR", currency_unit: "EUR"}) == 123.45
