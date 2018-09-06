@@ -5,7 +5,7 @@ defmodule Money.Int do
   @raw_config
   |> Enum.flat_map(fn({_, %{units: units = %{}}}) -> Map.keys(units) end)
   |> Enum.uniq
-  |> Enum.each(fn(unit) -> 
+  |> Enum.each(fn(unit) ->
 
     from_function_name = "from_#{unit}" |> String.to_atom
     to_function_name = "to_#{unit}" |> String.to_atom
@@ -47,7 +47,7 @@ defmodule Money.Int do
         12_345
 
         iex> Money.Int.to_cent(%Money{amount: 12_345_678, currency_code: "EUR", currency_unit: "cent"})
-        12_346
+        12_345
 
         iex> Money.Int.to_cent(%Money{amount: 12_345_678, currency_code: "Euro", currency_unit: "cent"})
         ** (ArgumentError) Unsupported currency 'Euro'
@@ -57,7 +57,7 @@ defmodule Money.Int do
     def unquote(to_function_name)(%Money{amount: amount, currency_code: currency_code}) do
       %{precision: precision, units: %{unquote(unit_string) => %{shift: shift}}} =
         Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
-      round(amount / Money.pow10(precision - shift))
+      trunc(amount / Money.pow10(precision - shift))
     end
 
   end)
