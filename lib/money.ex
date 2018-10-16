@@ -197,6 +197,9 @@ defmodule Money do
       iex> Money.to_string(%Money{amount: 12345, currency_code: "Euro", currency_unit: "uBTC"},3)
       ** (ArgumentError) Unsupported currency 'Euro'
 
+      iex> Money.to_string(%Money{amount: -5305, currency_code: "BTC", currency_unit: "BTC"})
+      "-0.00005305"
+
   """
   @spec to_string(%Money{}, nil | non_neg_integer()) :: String.t
   def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit},
@@ -204,11 +207,17 @@ defmodule Money do
     %{precision: currency_precision, units: %{^currency_unit => %{shift: shift}}} =
       Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
     unit_precision = currency_precision - shift
+
+    minus_sign = if amount >= 0, do: "", else: "-"
+
     {integer_string, fractional_string} =
       amount
+      |> abs()
       |> Integer.to_string
       |> String.split_at(-unit_precision)
 
+    minus_sign
+    <>
     (integer_string
      |> String.pad_leading(1, "0"))
     <>
@@ -257,6 +266,9 @@ defmodule Money do
 
       iex> Money.to_float(%Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"})
       1.0e-5
+
+      iex> Money.to_float(%Money{amount: -5305, currency_code: "BTC", currency_unit: "BTC"})
+      -5.305e-5
 
       iex> Money.to_float(%Money{amount: 0, currency_code: "EUR", currency_unit: "EUR"})
       0.0
