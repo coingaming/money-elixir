@@ -26,7 +26,7 @@ defmodule Money.Mixfile do
 
   defp deps do
     [
-      {:poison, "~> 2.0", override: true},
+      {:poison, "~> 3.0"},
     ]
   end
 
