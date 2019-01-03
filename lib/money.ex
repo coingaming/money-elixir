@@ -214,7 +214,7 @@ defmodule Money do
       amount
       |> abs()
       |> Integer.to_string
-      |> String.split_at(-unit_precision)
+      |> split_at(-unit_precision)
 
     minus_sign
     <>
@@ -240,6 +240,10 @@ defmodule Money do
         |> String.pad_leading(1, "0"))
     end
   end
+
+  defp split_at(string, 0), do: {string, ""}
+
+  defp split_at(string, precision), do: String.split_at(string, precision)
 
   @doc """
   Converts from Money to floats.
