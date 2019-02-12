@@ -37,6 +37,9 @@ defmodule Money do
       iex> Money.to_money("-0.00001", "EUR")
       %Money{amount: -1, currency_code: "EUR", currency_unit: "EUR"}
 
+      iex> Money.to_money("1", "mBTC")
+      %Money{amount: 100000, currency_code: "mBTC", currency_unit: "mBTC"}
+
   ## Examples from floats
 
       iex> Money.to_money(123.45, "EUR")
@@ -57,6 +60,9 @@ defmodule Money do
       iex> Money.to_money(-0.00001, "EUR")
       %Money{amount: -1, currency_code: "EUR", currency_unit: "EUR"}
 
+      iex> Money.to_money(123.45, "uBTC")
+      %Money{amount: 12345000, currency_code: "uBTC", currency_unit: "uBTC"}
+
   ## Examples from integers
 
       iex> Money.to_money(12345, "EUR")
@@ -64,6 +70,9 @@ defmodule Money do
 
       iex> Money.to_money(-12345, "EUR")
       %Money{amount: -1234500000, currency_code: "EUR", currency_unit: "EUR"}
+
+      iex> Money.to_money(12345, "mETH")
+      %Money{amount: 1234500000, currency_code: "mETH", currency_unit: "mETH"}
 
   ## Examples with errors
 
@@ -89,9 +98,6 @@ defmodule Money do
           end
       end)
   end)
-
-
-
 
   @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t) :: %Money{}
   def to_money(amount, currency_code), do: to_money(amount, currency_code, currency_code)
