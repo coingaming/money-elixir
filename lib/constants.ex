@@ -87,6 +87,20 @@ defmodule Money.Constants do
         }
       }
     },
+    PTS: %{
+      code: "PTS",
+      precision: 5,
+      units: %{
+        PTS: %{
+          code: "PTS",
+          symbol: "PTS",
+          name: "PTS Virtual Currency",
+          shift: 0,
+          displayPrecision: 0,
+          inputPrecision: 4
+        }
+      }
+    },
   }
   # In currency_config all keys are atoms, while we need strings. Next block of code transforms currency codes into strings
   @currency_config (
