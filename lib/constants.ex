@@ -101,6 +101,20 @@ defmodule Money.Constants do
         }
       }
     },
+    PTQ: %{
+      code: "PTQ",
+      precision: 5,
+      units: %{
+        PTQ: %{
+          code: "PTQ",
+          symbol: "PTQ",
+          name: "PTQ Virtual Currency",
+          shift: 0,
+          displayPrecision: 0,
+          inputPrecision: 4
+        }
+      }
+    }
   }
   # In currency_config all keys are atoms, while we need strings. Next block of code transforms currency codes into strings
   @currency_config (
