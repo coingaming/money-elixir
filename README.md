@@ -1,4 +1,4 @@
-# money-elixir
+# deprecated please use https://hex.pm/packages/decimal instead
 
 Money amount converter
 
