@@ -37,9 +37,6 @@ defmodule Money do
       iex> Money.to_money("-0.00001", "EUR")
       %Money{amount: -1, currency_code: "EUR", currency_unit: "EUR"}
 
-      iex> Money.to_money("1", "mBTC")
-      %Money{amount: 100000, currency_code: "mBTC", currency_unit: "mBTC"}
-
   ## Examples from floats
 
       iex> Money.to_money(123.45, "EUR")
@@ -60,9 +57,6 @@ defmodule Money do
       iex> Money.to_money(-0.00001, "EUR")
       %Money{amount: -1, currency_code: "EUR", currency_unit: "EUR"}
 
-      iex> Money.to_money(123.45, "uBTC")
-      %Money{amount: 12345000, currency_code: "uBTC", currency_unit: "uBTC"}
-
   ## Examples from integers
 
       iex> Money.to_money(12345, "EUR")
@@ -70,9 +64,6 @@ defmodule Money do
 
       iex> Money.to_money(-12345, "EUR")
       %Money{amount: -1234500000, currency_code: "EUR", currency_unit: "EUR"}
-
-      iex> Money.to_money(12345, "mETH")
-      %Money{amount: 1234500000, currency_code: "mETH", currency_unit: "mETH"}
 
   ## Examples with errors
 
@@ -90,54 +81,71 @@ defmodule Money do
 
   """
   Money.Constants.currency_config()
-  |> Enum.each(fn({currency_code, %{units: units = %{}}}) ->
-      units
-      |> Enum.each(fn({currency_unit, %{}}) ->
-          def switch_unit(money = %Money{currency_code: unquote(currency_code)}, unquote(currency_unit)) do
-            %Money{money | currency_unit: unquote(currency_unit)}
-          end
-      end)
+  |> Enum.each(fn {currency_code, %{units: units = %{}}} ->
+    units
+    |> Enum.each(fn {currency_unit, %{}} ->
+      def switch_unit(money = %Money{currency_code: unquote(currency_code)}, unquote(currency_unit)) do
+        %Money{money | currency_unit: unquote(currency_unit)}
+      end
+    end)
   end)
 
-  @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t) :: %Money{}
+  @spec to_money(amount :: integer() | String.t() | float(), currency_code :: String.t()) ::
+          %Money{}
   def to_money(amount, currency_code), do: to_money(amount, currency_code, currency_code)
-  @spec to_money(amount :: integer() | String.t | float(), currency_code :: String.t, currency_unit :: String.t) :: %Money{}
-  def to_money(string_amount, currency_code, currency_unit) when is_binary(string_amount) and
-                                                                 is_binary(currency_code) and
-                                                                 is_binary(currency_unit)
-  do
+
+  @spec to_money(
+          amount :: integer() | String.t() | float(),
+          currency_code :: String.t(),
+          currency_unit :: String.t()
+        ) :: %Money{}
+  def to_money(string_amount, currency_code, currency_unit)
+      when is_binary(string_amount) and
+             is_binary(currency_code) and
+             is_binary(currency_unit) do
     cond do
       String.contains?(string_amount, @decimal_point) ->
         string_amount
-        |> :erlang.binary_to_float
+        |> :erlang.binary_to_float()
         |> to_money(currency_code, currency_unit)
+
       true ->
         string_amount
-        |> :erlang.binary_to_integer
+        |> :erlang.binary_to_integer()
         |> to_money(currency_code, currency_unit)
     end
   end
 
-  def to_money(float_amount, currency_code, currency_unit) when is_float(float_amount) and
-                                                 is_binary(currency_code) and
-                                                 is_binary(currency_unit)
-  do
+  def to_money(float_amount, currency_code, currency_unit)
+      when is_float(float_amount) and
+             is_binary(currency_code) and
+             is_binary(currency_unit) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
+      Map.get(@currency_config, currency_code) ||
+        raise ArgumentError, "Unsupported currency '#{currency_code}'"
+
     amount =
       float_amount
       |> :erlang.float_to_binary(decimals: precision - shift)
       |> String.replace(@decimal_point, "")
-      |> String.to_integer
+      |> String.to_integer()
+
     %Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit}
   end
 
-  def to_money(integer_amount, currency_code, currency_unit) when is_integer(integer_amount) and
-                                                                  is_binary(currency_code) and
-                                                                  is_binary(currency_unit) do
+  def to_money(integer_amount, currency_code, currency_unit)
+      when is_integer(integer_amount) and
+             is_binary(currency_code) and
+             is_binary(currency_unit) do
     %{precision: precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
-    %Money{amount: integer_amount * pow10(precision - shift), currency_code: currency_code, currency_unit: currency_unit}
+      Map.get(@currency_config, currency_code) ||
+        raise ArgumentError, "Unsupported currency '#{currency_code}'"
+
+    %Money{
+      amount: integer_amount * pow10(precision - shift),
+      currency_code: currency_code,
+      currency_unit: currency_unit
+    }
   end
 
   @doc """
@@ -207,11 +215,15 @@ defmodule Money do
       "-0.00005305"
 
   """
-  @spec to_string(%Money{}, nil | non_neg_integer()) :: String.t
-  def to_string(%Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit},
-                precision \\ nil) do
+  @spec to_string(%Money{}, nil | non_neg_integer()) :: String.t()
+  def to_string(
+        %Money{amount: amount, currency_code: currency_code, currency_unit: currency_unit},
+        precision \\ nil
+      ) do
     %{precision: currency_precision, units: %{^currency_unit => %{shift: shift}}} =
-      Map.get(@currency_config, currency_code) || raise ArgumentError, "Unsupported currency '#{currency_code}'"
+      Map.get(@currency_config, currency_code) ||
+        raise ArgumentError, "Unsupported currency '#{currency_code}'"
+
     unit_precision = currency_precision - shift
 
     minus_sign = if amount >= 0, do: "", else: "-"
@@ -219,32 +231,30 @@ defmodule Money do
     {integer_string, fractional_string} =
       amount
       |> abs()
-      |> Integer.to_string
+      |> Integer.to_string()
       |> split_at(-unit_precision)
 
-    minus_sign
-    <>
-    (integer_string
-     |> String.pad_leading(1, "0"))
-    <>
-    cond do
-      precision == 0 ->
-        ""
-      is_integer(precision) and precision > 0 ->
-        @decimal_point
-        <>
-        (fractional_string
-        |> String.pad_leading(unit_precision, "0")
-        |> String.slice(0, precision)
-        |> String.pad_trailing(precision, "0"))
-      true ->
-        @decimal_point
-        <>
-        (fractional_string
-        |> String.pad_leading(unit_precision, "0")
-        |> String.trim_trailing("0")
-        |> String.pad_leading(1, "0"))
-    end
+    minus_sign <>
+      (integer_string
+       |> String.pad_leading(1, "0")) <>
+      cond do
+        precision == 0 ->
+          ""
+
+        is_integer(precision) and precision > 0 ->
+          @decimal_point <>
+            (fractional_string
+             |> String.pad_leading(unit_precision, "0")
+             |> String.slice(0, precision)
+             |> String.pad_trailing(precision, "0"))
+
+        true ->
+          @decimal_point <>
+            (fractional_string
+             |> String.pad_leading(unit_precision, "0")
+             |> String.trim_trailing("0")
+             |> String.pad_leading(1, "0"))
+      end
   end
 
   defp split_at(string, 0), do: {string, ""}
@@ -290,15 +300,16 @@ defmodule Money do
   @spec to_float(%Money{}) :: float()
   def to_float(%Money{} = money) do
     money
-    |> __MODULE__.to_string
-    |> :erlang.binary_to_float
+    |> __MODULE__.to_string()
+    |> :erlang.binary_to_float()
   end
 
   @pow10_max 104
-  Enum.reduce 0..@pow10_max, 1, fn int, acc ->
+  Enum.reduce(0..@pow10_max, 1, fn int, acc ->
     def pow10(unquote(int)), do: unquote(acc)
     acc * 10
-  end
+  end)
+
   def pow10(int) when int > @pow10_max do
     pow10(@pow10_max) * pow10(int - @pow10_max)
   end
