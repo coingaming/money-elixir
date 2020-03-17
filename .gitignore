@@ -26,3 +26,4 @@ schema.json
 /.vscode
 /.idea
 /.DS_Store
+/.elixir_ls/

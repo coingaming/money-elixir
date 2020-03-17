@@ -10,7 +10,7 @@ defmodule Money.Mixfile do
       description: "Money amount converter",
       source_url: "https://github.com/heathmont/money-elixir",
       version: @vsn,
-      elixir: "~> 1.4",
+      elixir: "~> 1.10",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -28,7 +28,7 @@ defmodule Money.Mixfile do
 
   defp deps do
     [
-      {:poison, "~> 3.0"}
+      {:poison, "~> 4.0"}
     ]
   end
 
