@@ -10,4 +10,4 @@ Testing is by `mix test` that uses examples in the main module.
 
 Add dependency to your project mix.exs file:
 
-`{:ih_money, github: "coingaming/money-elixir", submodules: true}`
+`{:ih_money, "0.3.0", organization: "coingaming"}`
