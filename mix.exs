@@ -37,8 +37,8 @@ defmodule Money.Mixfile do
 
   defp deps do
     [
-      {:poison, "~> 4.0"},
-      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
+      {:poison, "~> 5.0"}
     ]
   end
 
