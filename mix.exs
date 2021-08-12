@@ -7,14 +7,23 @@ defmodule Money.Mixfile do
     [
       app: :ih_money,
       name: "Money",
-      description: "Money amount converter",
-      source_url: "https://github.com/heathmont/money-elixir",
       version: @vsn,
+      package: package(),
       elixir: "~> 1.10",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps()
+    ]
+  end
+
+  defp package do
+    [
+      description: "Money amount converter",
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/heathmont/money-elixir"
+      }
     ]
   end
 
@@ -29,7 +38,7 @@ defmodule Money.Mixfile do
   defp deps do
     [
       {:poison, "~> 4.0"},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end
 
