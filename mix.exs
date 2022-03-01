@@ -1,29 +1,29 @@
 defmodule Money.Mixfile do
   use Mix.Project
 
-  @vsn "0.3.3"
+  @version (case File.read("VERSION") do
+    {:ok, version} -> String.trim(version)
+    {:error, _} -> "0.0.0-development"
+  end)
 
   def project do
     [
       app: :ih_money,
       name: "Money",
-      version: @vsn,
-      package: package(),
+      version: @version,
       elixir: "~> 1.10",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      deps: deps()
-    ]
-  end
-
-  defp package do
-    [
-      description: "Money amount converter",
-      licenses: ["MIT"],
-      links: %{
-        "GitHub" => "https://github.com/heathmont/money-elixir"
-      }
+      deps: deps(),
+      package: package(),
+      # docs
+      name: "Money",
+      source_url: "https://github.com/coingaming/money-elixir",
+      homepage_url: "https://github.com/coingaming/money-elixir/tree/v#{@version}",
+      docs: [
+        source_ref: "v#{@version}"
+      ]
     ]
   end
 
@@ -32,6 +32,18 @@ defmodule Money.Mixfile do
       extra_applications: [
         :logger
       ]
+    ]
+  end
+
+  defp package do
+    [
+      organization: "coingaming",
+      description: "Money amount converter",
+      licenses: ["MIT"],
+      files: ["lib", "mix.exs", "README.md", "CHANGELOG.md", "VERSION", "priv/currency-config/config.json"],
+      links: %{
+        "GitHub" => "https://github.com/coingaming/money-elixir/tree/v#{@version}"
+      }
     ]
   end
 
