@@ -1,3 +1,10 @@
+## [0.3.4](https://github.com/coingaming/money-elixir/compare/v0.3.3...v0.3.4) (2022-03-01)
+
+
+### Bug Fixes
+
+* dummy change to trigger release ([e84aac5](https://github.com/coingaming/money-elixir/commit/e84aac534b8cae6adcad3782a6a7b8c3a6a638e6))
+
 ## [0.3.3](https://github.com/coingaming/money-elixir/compare/v0.3.2...v0.3.3) (2022-03-01)
 
 
