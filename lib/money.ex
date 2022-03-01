@@ -43,7 +43,7 @@ defmodule Money do
       iex> Money.to_money(123.45, "EUR", "cent")
       %Money{amount: 123450, currency_code: "EUR", currency_unit: "cent"}
 
-      iex> Money.to_money(-1234.5678999, "EUR")
+      iex> Money.to_money(-1234.5678998, "EUR")
       %Money{amount: -123456790, currency_code: "EUR", currency_unit: "EUR"}
 
       iex> Money.to_money(0.0000099999999, "EUR")
