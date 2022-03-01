@@ -25,11 +25,9 @@ defmodule Money do
       iex> Money.to_money("123.456789", "BTC", "mBTC")
       %Money{amount: 12345679, currency_code: "BTC", currency_unit: "mBTC"}
 
-      iex> Money.to_money("+123.+456789", "EUR")
-      ** (ArgumentError) argument error
+      iex> assert_raise ArgumentError, fn -> Money.to_money("+123.+456789", "EUR") end
 
-      iex> Money.to_money("-123.-456789", "EUR")
-      ** (ArgumentError) argument error
+      iex> assert_raise ArgumentError, fn -> Money.to_money("-123.-456789", "EUR") end
 
       iex> Money.to_money("0.0000099999999", "EUR")
       %Money{amount: 1, currency_code: "EUR", currency_unit: "EUR"}
@@ -67,14 +65,11 @@ defmodule Money do
 
   ## Examples with errors
 
-      iex> Money.to_money("123.456!789", "EUR")
-      ** (ArgumentError) argument error
+      iex> assert_raise ArgumentError, fn -> Money.to_money("123.456!789", "EUR") end
 
-      iex> Money.to_money("123!456!789", "EUR")
-      ** (ArgumentError) argument error
+      iex> assert_raise ArgumentError, fn -> Money.to_money("123!456!789", "EUR") end
 
-      iex> Money.to_money("123.456.789", "EUR")
-      ** (ArgumentError) argument error
+      iex> assert_raise ArgumentError, fn -> Money.to_money("123.456.789", "EUR") end
 
       iex> Money.to_money("123.45", "Euro")
       ** (ArgumentError) Unsupported currency 'Euro'

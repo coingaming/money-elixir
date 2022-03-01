@@ -14,6 +14,9 @@ jobs:
             - v1-test-{{ checksum "mix.lock" }}-
             - v1-test-
       - run:
+          name:       Pull submodules
+          command:    git submodule update --init --recursive
+      - run:
           name:       Hex auth
           command:    mix hex.organization auth coingaming --key $HEX_API_KEY
       - run:
