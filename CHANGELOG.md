@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/coingaming/money-elixir/compare/v0.3.4...v0.4.0) (2022-06-28)
+
+
+### Features
+
+* **Pay88:** update submodule for bnb currency ([#36](https://github.com/coingaming/money-elixir/issues/36)) ([3e30c9f](https://github.com/coingaming/money-elixir/commit/3e30c9f3cf08e0ac18dadc521c1428c2f83ed2d3))
+
 ## [0.3.4](https://github.com/coingaming/money-elixir/compare/v0.3.3...v0.3.4) (2022-03-01)
 
 
