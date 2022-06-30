@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/coingaming/money-elixir/compare/v0.4.0...v0.5.0) (2022-06-30)
+
+
+### Features
+
+* **Pay88:** HI currency ([#37](https://github.com/coingaming/money-elixir/issues/37)) ([aaf20ea](https://github.com/coingaming/money-elixir/commit/aaf20eafd42edad52a708d46c67efccde21244bf))
+
 # [0.4.0](https://github.com/coingaming/money-elixir/compare/v0.3.4...v0.4.0) (2022-06-28)
 
 
