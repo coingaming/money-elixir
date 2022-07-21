@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/coingaming/money-elixir/compare/v0.5.0...v0.6.0) (2022-07-21)
+
+
+### Features
+
+* 🎸 SOL and USDC currencies ([b1e2de2](https://github.com/coingaming/money-elixir/commit/b1e2de219419fd36b3dd90102ec2a7e07c607496))
+
 # [0.5.0](https://github.com/coingaming/money-elixir/compare/v0.4.0...v0.5.0) (2022-06-30)
 
 
