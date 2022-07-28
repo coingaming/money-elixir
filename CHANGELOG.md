@@ -1,3 +1,10 @@
+## [0.6.1](https://github.com/coingaming/money-elixir/compare/v0.6.0...v0.6.1) (2022-07-28)
+
+
+### Bug Fixes
+
+* 🐛 hi precision 8 ([d6c4ebc](https://github.com/coingaming/money-elixir/commit/d6c4ebcbb536eac80eda5f473b9e9d9bac721cd4))
+
 # [0.6.0](https://github.com/coingaming/money-elixir/compare/v0.5.0...v0.6.0) (2022-07-21)
 
 
