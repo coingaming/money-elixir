@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/coingaming/money-elixir/compare/v0.6.1...v0.7.0) (2022-09-16)
+
+
+### Features
+
+* add DAI currency ([#40](https://github.com/coingaming/money-elixir/issues/40)) ([871aae4](https://github.com/coingaming/money-elixir/commit/871aae4960a0d38d085cf9d94fc44ed5d86d4f55))
+
 ## [0.6.1](https://github.com/coingaming/money-elixir/compare/v0.6.0...v0.6.1) (2022-07-28)
 
 
