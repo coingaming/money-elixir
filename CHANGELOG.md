@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/coingaming/money-elixir/compare/v0.7.0...v0.8.0) (2023-01-03)
+
+
+### Features
+
+* add MATIC ([#41](https://github.com/coingaming/money-elixir/issues/41)) ([0442a96](https://github.com/coingaming/money-elixir/commit/0442a960bf3dbff1c9d6265958b90bd6dd17a687))
+
 # [0.7.0](https://github.com/coingaming/money-elixir/compare/v0.6.1...v0.7.0) (2022-09-16)
 
 
