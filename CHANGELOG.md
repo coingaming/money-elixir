@@ -1,3 +1,10 @@
+# [0.9.0](https://github.com/coingaming/money-elixir/compare/v0.8.0...v0.9.0) (2024-05-02)
+
+
+### Features
+
+* add shib ([#42](https://github.com/coingaming/money-elixir/issues/42)) ([1dc7230](https://github.com/coingaming/money-elixir/commit/1dc7230b57bd9d52c880bd302f42dccbdf7f5518))
+
 # [0.8.0](https://github.com/coingaming/money-elixir/compare/v0.7.0...v0.8.0) (2023-01-03)
 
 
