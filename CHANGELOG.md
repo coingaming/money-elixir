@@ -1,3 +1,10 @@
+# [0.12.0](https://github.com/coingaming/money-elixir/compare/v0.11.0...v0.12.0) (2024-11-07)
+
+
+### Features
+
+* added EURC ([3d03f51](https://github.com/coingaming/money-elixir/commit/3d03f5141b7a265e8f1c47734d9d87dd5ccdb8c1))
+
 # [0.11.0](https://github.com/coingaming/money-elixir/compare/v0.10.0...v0.11.0) (2024-10-10)
 
 
